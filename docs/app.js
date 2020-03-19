@@ -2,8 +2,8 @@ const MODEL_URL = "https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v2_140
 const DICT_URL = "https://cors-anywhere.herokuapp.com/https://storage.googleapis.com/download.tensorflow.org/data/ImageNetLabels.txt";
 
 // Global
-let model;
-let dictionary;
+let model = null;
+let dictionary = null;
 let webWorker = null;
 let workerModelIsReady = false;
 let isWaiting = false;
@@ -32,6 +32,7 @@ const init = async function() {
   } catch(err) {
     console.log(err);
   }
+
   setupModel();
 
   DOM_EL.video.onloadeddata = e => {
@@ -64,8 +65,6 @@ const setupModel = async function() {
       }
       console.log(evt.data);
     }
-
-    return;
   } else {
     try {
       model = await tf.loadGraphModel(MODEL_URL, { fromTFHub: true });
@@ -82,9 +81,6 @@ const setupModel = async function() {
 }
 
 const predict = async function() {
-  if (!workerModelIsReady) {
-    return;
-  }
   const scores = tf.tidy(() => {
     const imgAsTensor = tf.browser.fromPixels(DOM_EL.canvas);
     const centerCroppedImg = centerCropAndResize(imgAsTensor);
